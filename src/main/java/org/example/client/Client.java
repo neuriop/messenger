@@ -9,46 +9,37 @@ import java.net.UnknownHostException;
 import java.util.Scanner;
 
 public class Client {
-    private String serverAddress = "localhost";
-    private int serverPort = 1234;
+    private static final String ADDRESS = "localhost";
+    private static final int PORT = 5000;
 
-    private String name;
 
-    public Client(String name){
-        this.name = name;
-    }
-
-    public Client(String name, String serverAddress, int port){
-        this.name = name;
-        this.serverAddress = serverAddress;
-        serverPort = port;
-    }
-
-    public void client(){
-        try (Socket socket = new Socket(serverAddress, serverPort);
-             PrintWriter out = new PrintWriter(socket.getOutputStream());
-             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))){
-            Scanner scanner = new Scanner(System.in);
-
+    public static void client() {
+        try (Socket clientSocket = new Socket(ADDRESS, PORT);
+             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+             PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true );){
+            System.out.println("Client started");
             new Thread(() -> {
-                String message;
+                System.out.println("Thread started");
                 try {
-                    while ((message = in.readLine()) != null){
-                        System.out.println(message);
+                    String serverResponse;
+                    System.out.println("Went here");
+                    while ((serverResponse = in.readLine()) != null) {
+                        System.out.println("Message" + serverResponse);
                     }
                 } catch (IOException e) {
-                    System.out.println("Received unknown message: " + e);
+                    e.printStackTrace();
                 }
-            });
+            }).start();
 
-            String userInput;
-            while (true) {
-                userInput = scanner.nextLine();
-                out.println(name + userInput);
+            Scanner scanner = new Scanner(System.in);
+            while (true){
+                System.out.println("Enter message");
+                out.println(scanner.nextLine());
+                System.out.println("Message sent");
             }
 
         } catch (UnknownHostException e) {
-            System.out.println("Unknown address or port: " + e);
+            throw new RuntimeException(e);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

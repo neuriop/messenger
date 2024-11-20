@@ -9,16 +9,17 @@ public class Main {
 
 
     public static void main(String[] args) {
-        String s = new Scanner(System.in).nextLine();
-
-
-
-        switch (s) {
-            case "host":
-                Host.host();
-                break;
-            case "client":
-                new Client(new Scanner(System.in).nextLine()).client();
+        Scanner scanner = new Scanner(System.in);
+        if ("server".equals(scanner.nextLine())) {
+            System.out.println("Starting server");
+            Host.host();
         }
+
+        else {
+            System.out.println("Starting client");
+            Client.client();
+        }
+
+        System.out.println("A");
     }
 }

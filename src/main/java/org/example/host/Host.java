@@ -10,58 +10,64 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class Host {
+    public static final int PORT = 5000;
     private static Set<ClientHandler> clients = new HashSet<>();
 
-    public static void host(){
-        try (ServerSocket socket = new ServerSocket(1234)){
-            while (true){
-                ClientHandler client = new ClientHandler(socket.accept());
-                clients.add(client);
-                new Thread(client).start();
+    public static void host() {
+        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
+            while (true) {
+                Socket clientSocket = serverSocket.accept();
+                System.out.println("New client connected");
+
+                ClientHandler clientHandler = new ClientHandler(clientSocket);
+                clients.add(clientHandler);
+                new Thread(clientHandler).start();
             }
-        } catch (IOException e){
+
+
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static void broadcastMessage(String message){
+    public static void broadcast(String input){
+        System.out.println(clients.size());
         for (ClientHandler client : clients) {
-            client.sendMessage(message);
+            client.sendMessage(input);
         }
+        System.out.println("Message broadcasted");
     }
 
-    public static class ClientHandler implements Runnable{
-        private final Socket socket;
+    private static class ClientHandler implements Runnable {
+        private Socket clientSocket;
         private PrintWriter out;
         private BufferedReader in;
 
-        public ClientHandler(Socket socket){
-            this.socket = socket;
+        public ClientHandler(Socket socket) throws IOException {
+            clientSocket = socket;
+            out = new PrintWriter(socket.getOutputStream());
         }
 
-        public void run(){
-            try {
-                in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                out = new PrintWriter(socket.getOutputStream(), true);
-                String message;
-                while ((message = in.readLine()) != null){
-                    System.out.println(message);
-                    broadcastMessage(message);
+        @Override
+        public void run() {
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))) {
+                String input;
+                while ((input = in.readLine()) != null){
+                    broadcast(input);
+                    System.out.println("Message received: "+ input);
                 }
-            } catch (IOException e) {
-                System.out.println("Failed to create client handler, skipping: " + e);
-            } finally {
-                try {
-                    socket.close();
-                } catch (IOException e) {
-                    System.out.println("Failed to close unused socket: " + e);
-                }
+
                 clients.remove(this);
+                out.close();
+                clientSocket.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
         }
 
-        public void sendMessage(String message){
-            out.println(message);
+        public void sendMessage(String input) {
+            out.println(input);
+            System.out.println("Message sent");
         }
     }
 }
