@@ -22,9 +22,8 @@ public class Client {
                 System.out.println("Thread started");
                 try {
                     String serverResponse;
-                    System.out.println("Went here");
                     while ((serverResponse = in.readLine()) != null) {
-                        System.out.println("Message" + serverResponse);
+                        System.out.println("Message: " + serverResponse);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
