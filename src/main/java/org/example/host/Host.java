@@ -80,21 +80,45 @@ public class Host {
 
         private void setUsername() throws IOException {
             out.println("Enter username: ");
-            System.out.println("waiting for username");
-            String input;
+            System.out.println("Waiting for username...");
             while (true) {
-                System.out.println("waiting for username");
-                while ((input = in.readLine()) != null) {
-                    username = input;
+                String input = in.readLine();
+                if (input == null) {
+                    System.out.println("Client disconnected while setting username.");
+                    return;
                 }
-                System.out.println(username);
-                if (isValidUsername(username)){
-                    break;
+                username = input.trim();
+                if (isValidUsername(username)) {
+                    if (clients2.containsKey(username)) {
+                        out.println("Username is already taken. Please choose another one.");
+                    } else {
+                        clients2.put(username, this);
+                        System.out.println("Username set " + username);
+                        break;
+                    }
                 } else {
-                    sendMessage("Username must contain only alphanumeric characters");
+                    out.println("Username must contain only alphanumeric characters.");
                 }
             }
         }
+
+//        private void setUsername() throws IOException {
+//            out.println("Enter username: ");
+//            System.out.println("waiting for username");
+//            String input;
+//            while (true) {
+//                System.out.println("waiting for username");
+//                while ((input = in.readLine()) != null) {
+//                    username = input;
+//                }
+//                System.out.println(username);
+//                if (isValidUsername(username)){
+//                    break;
+//                } else {
+//                    sendMessage("Username must contain only alphanumeric characters");
+//                }
+//            }
+//        }
 
         private String getUsername() {
             return username;
@@ -113,7 +137,7 @@ public class Host {
         private String getMessageFromMsg(String message){
             message = message.replace("/msg ", "");
             String[] parts = message.split(" ");
-            parts = removeFirstElement(parts);
+            parts [0] = "private:" + username + ":";
             return String.join(" ", parts);
         }
 
@@ -150,9 +174,9 @@ public class Host {
                                 "\n/msg <username> - send private message" +
                                 "\n/group - send message to group of friends");
                     } else if (input.startsWith("/group ")){
-                        groupChat(input, getFriendList());
+                        groupChat(input.replace("/group ", ""), getFriendList());
                     } else {
-                        broadcast(input, this);
+                        broadcast("[" + username + "]:" + input, this);
                         System.out.println("Message received: " + input);
                     }
                 }
@@ -168,7 +192,7 @@ public class Host {
         }
 
         public void sendMessage(String input) {
-            out.println("[" + username + "]:" + input);
+            out.println(input);
             System.out.println("Message sent");
         }
     }
