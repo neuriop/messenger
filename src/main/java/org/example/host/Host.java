@@ -102,24 +102,6 @@ public class Host {
             }
         }
 
-//        private void setUsername() throws IOException {
-//            out.println("Enter username: ");
-//            System.out.println("waiting for username");
-//            String input;
-//            while (true) {
-//                System.out.println("waiting for username");
-//                while ((input = in.readLine()) != null) {
-//                    username = input;
-//                }
-//                System.out.println(username);
-//                if (isValidUsername(username)){
-//                    break;
-//                } else {
-//                    sendMessage("Username must contain only alphanumeric characters");
-//                }
-//            }
-//        }
-
         private String getUsername() {
             return username;
         }
