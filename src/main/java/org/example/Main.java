@@ -20,6 +20,6 @@ public class Main {
             Client.client();
         }
 
-        System.out.println("A");
+        System.out.println("B");
     }
 }

@@ -6,6 +6,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 public class Host {
@@ -33,23 +35,23 @@ public class Host {
     public static void broadcast(String input, ClientHandler clientHandler) {
         System.out.println(clients2.size());
         for (ClientHandler client : clients2.values()) {
-            if (client != clientHandler){
+            if (client != clientHandler) {
                 client.sendMessage(input);
             }
         }
         System.out.println("Message broadcast");
     }
 
-    private static void groupChat(String input, Set<String> users){
+    private static void groupChat(String input, Set<String> users) {
         for (String user : users) {
-            if (clients2.containsKey(user)){
+            if (clients2.containsKey(user)) {
                 clients2.get(user).sendMessage("Message from group: " + input);
             }
         }
     }
 
-    public static void privateMessage(String username, String input){
-        if (clients2.containsKey(username)){
+    public static void privateMessage(String username, String input) {
+        if (clients2.containsKey(username)) {
             clients2.get(username).sendMessage(input);
         }
     }
@@ -106,7 +108,7 @@ public class Host {
             return username;
         }
 
-        private Set<String> getFriendList(){
+        private Set<String> getFriendList() {
             return friendList;
         }
 
@@ -116,11 +118,30 @@ public class Host {
             return parts[0];
         }
 
-        private String getMessageFromMsg(String message){
+        private String getMessageFromMsg(String message) {
             message = message.replace("/msg ", "");
             String[] parts = message.split(" ");
-            parts [0] = "private:" + username + ":";
+            parts[0] = "private:" + username + ":";
             return String.join(" ", parts);
+        }
+
+        private String getSecondPart(String message) {
+            String[] parts = message.split(" ");
+            return parts[1];
+        }
+
+        private String getMessageWithoutCommand(String message) {
+            String[] parts = message.split(" ");
+            String[] result = new String[parts.length - 1];
+            System.arraycopy(parts, 1, result, 0, parts.length - 1);
+            return String.join(" ", result);
+        }
+
+        private String getThirdAndRest(String message) {
+            String[] parts = message.split(" ");
+            String[] result = new String[parts.length - 1];
+            System.arraycopy(parts, 2, result, 0, parts.length - 1);
+            return String.join(" ", result);
         }
 
         private String[] removeFirstElement(String[] array) {
@@ -134,6 +155,14 @@ public class Host {
             return newArray;
         }
 
+        private String getCurrentTime(String timeZone) {
+            try {
+                return LocalDateTime.now(ZoneId.of(timeZone)).toString();
+            } catch (Exception e) {
+                return LocalDateTime.now().toString();
+            }
+        }
+
         public static boolean isValidUsername(String username) {
             return username.matches("^[a-zA-Z0-9]+$");
         }
@@ -145,17 +174,19 @@ public class Host {
                 while ((input = in.readLine()) != null) {
                     if (input.startsWith("/addfr ")) {
                         addFriend(input.replace("/addfr ", ""));
-                    } else if (input.startsWith("/remfr ")){
+                    } else if (input.startsWith("/remfr ")) {
                         removeFriend(input.replace("/remfr ", ""));
                     } else if (input.startsWith("/msg ")) {
                         privateMessage(getPrivateMessageUsername(input), getMessageFromMsg(input));
+                    } else if (input.startsWith("/time")) {
+                        sendMessage(getCurrentTime(getMessageWithoutCommand(input)));
                     } else if (input.startsWith("/help")) {
                         sendMessage("/help - list commands" +
                                 "\n/addfr <username> - add friend" +
                                 "\n/remfr <username> - remove friend" +
                                 "\n/msg <username> - send private message" +
                                 "\n/group - send message to group of friends");
-                    } else if (input.startsWith("/group ")){
+                    } else if (input.startsWith("/group ")) {
                         groupChat(input.replace("/group ", ""), getFriendList());
                     } else {
                         broadcast("[" + username + "]:" + input, this);
