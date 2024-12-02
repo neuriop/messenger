@@ -9,6 +9,9 @@ import java.net.Socket;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Host {
     public static final int PORT = 5000;
@@ -74,6 +77,15 @@ public class Host {
             if (clients2.containsKey(username)) {
                 friendList.add(username);
             } else sendMessage("This user does not exist");
+        }
+
+        private void scheduleMessage(String input) {
+            ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+            Runnable task = () -> {
+                sendMessage(input);
+            };
+            scheduler.schedule(task, 5, TimeUnit.SECONDS);
+
         }
 
         private void removeFriend(String username) {
@@ -180,6 +192,8 @@ public class Host {
                         privateMessage(getPrivateMessageUsername(input), getMessageFromMsg(input));
                     } else if (input.startsWith("/time")) {
                         sendMessage(getCurrentTime(getMessageWithoutCommand(input)));
+                    } else if (input.startsWith("/echo")) {
+                        scheduleMessage(input);
                     } else if (input.startsWith("/help")) {
                         sendMessage("/help - list commands" +
                                 "\n/addfr <username> - add friend" +
