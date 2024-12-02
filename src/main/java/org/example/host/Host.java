@@ -85,7 +85,27 @@ public class Host {
                 sendMessage(input);
             };
             scheduler.schedule(task, 5, TimeUnit.SECONDS);
+        }
 
+        private long factorial(int n) {
+            if (n < 0)
+                throw new IllegalArgumentException();
+            if (n == 0 || n == 1)
+                return 1;
+            return n * factorial(n - 1);
+        }
+
+        private String getFactorial(String n) {
+            try {
+                int i = Integer.parseInt(n);
+                if (i < 20)
+                    return String.valueOf(factorial(i));
+                return "Factorial is too large to calculate";
+            } catch (NumberFormatException e) {
+                return "Cannot calculate factorial of " + n;
+            } catch (IllegalArgumentException e){
+                return "Cannot calculate factorial of negative";
+            }
         }
 
         private void removeFriend(String username) {
@@ -200,6 +220,8 @@ public class Host {
                                 "\n/remfr <username> - remove friend" +
                                 "\n/msg <username> - send private message" +
                                 "\n/group - send message to group of friends");
+                    } else if (input.startsWith("/fact") || input.startsWith("/factorial")) {
+                        sendMessage(getFactorial(getMessageWithoutCommand(input)));
                     } else if (input.startsWith("/group ")) {
                         groupChat(input.replace("/group ", ""), getFriendList());
                     } else {
